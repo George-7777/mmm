@@ -1,0 +1,11 @@
+[project]
+name = "mmm"
+version = "0.0.1"
+description = "Простая социальная сеть для общения молодежоактивных между собой."
+dependencies = [
+    "flask",
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
