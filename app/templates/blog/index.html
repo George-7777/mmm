@@ -9,7 +9,7 @@
 
 {% block content %}
   {% for post in posts %}
-    <article class="post">
+    <article class="post" data-url="{{ url_for('blog.view', id=post['id']) }}">
       <header>
         <div>
           <h1>{{ post['title'] }}</h1>
@@ -25,4 +25,16 @@
       <hr>
     {% endif %}
   {% endfor %}
+
+  <script>
+    document.querySelectorAll('.post').forEach(article => {
+      article.addEventListener('click', (e) => {
+        if (e.target.tagName.toLowerCase() === 'a') return;
+        const url = article.getAttribute('data-url');
+        if (url) {
+          window.location.href = url;
+        }
+      });
+    });
+  </script>
 {% endblock %}
