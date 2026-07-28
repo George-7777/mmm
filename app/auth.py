@@ -34,7 +34,7 @@ def register():
                 db.session.add(user)
                 try:
                     db.session.commit()
-                except Exception as e:
+                except Exception:
                     db.session.rollback()
                     error = "Ошибка при регистрации."
                 else:

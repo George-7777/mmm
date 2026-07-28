@@ -16,5 +16,11 @@
         </div>
       </header>
       <p class="body">{{ post['body'] }}</p>
+      <p class="rating">Рейтинг: {{ post.rating }}</p>
+      <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
+        <button type="submit" name="value" value="1">✊</button>
+        <button type="submit" name="value" value="-1">👍</button>
+        <button type="submit" name="value" value="-1">👎</button>
+      </form>
     </article>
 {% endblock %}

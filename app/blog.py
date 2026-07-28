@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 from app.auth import login_required
 
 from . import db
-from .models import Post, User
+from .models import Post, User, Vote
 
 bp = Blueprint('blog', __name__)
 
@@ -88,3 +88,32 @@ def delete(id):
 def view(id):
     post = get_post(id, False)
     return render_template('blog/view.html', post=post)
+
+def change_vote(user_id, post_id, value):
+    post = get_post(post_id)
+    if value not in (1, -1, 0):
+        raise ValueError("Голос должен быть +1, или -1, или 0")
+
+    exciting_vote = Vote.query.filter(Vote.user_id == user_id, Vote.post_id == post_id).first()
+
+    if exciting_vote:
+        post.rating -= exciting_vote.value
+        post.rating += value
+        exciting_vote.value = value
+    else:
+        post.rating += value
+        new_vote = Vote(user_id=user_id, post_id=post_id, value=value)
+        db.session.add(new_vote)
+
+    db.session.commit()
+
+@bp.route('/<int:id>/vote', methods=('POST',))
+@login_required
+def vote(id):
+    value = request.form.get('value', type=int)
+    try:
+        change_vote(g.user.id, id, value)
+    except ValueError as e:
+        abort(400, str(e))
+
+    return redirect(url_for('blog.index'))
