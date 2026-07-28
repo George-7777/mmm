@@ -8,7 +8,7 @@
   <form method="post">
     <label for="title">Название её</label>
     <input name="title" id="title"
-      value="{{ request.form['title'] or post['title'] }}" required>
+      value="{{ request.form['title'] or post['title'] }}" required maxlength="200">
     <label for="body">Сама публикация</label>
     <textarea name="body" id="body">{{ request.form['body'] or post['body'] }}</textarea>
     <input type="submit" value="МЕТАМ0РФ03А">

@@ -5,7 +5,8 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.db import get_db
+from . import db
+from .models import User
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -15,7 +16,6 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
         error = None
 
         if not username:
@@ -24,16 +24,21 @@ def register():
             error = 'Пароль тоже нужен.'
 
         if error is None:
-            try:
-                db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
-                    (username, generate_password_hash(password)),
-                )
-                db.commit()
-            except db.IntegrityError:
+            exciting_user = User.query.filter_by(username=username).first()
+
+            if exciting_user:
                 error = f"Пользователь с именем {username} уже зарегистрирован."
             else:
-                return redirect(url_for("auth.login"))
+                user = User(username=username)
+                user.set_password(password)
+                db.session.add(user)
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    error = "Ошибка при регистрации."
+                else:
+                    return redirect(url_for('auth.login'))
 
         flash(error)
 
@@ -45,20 +50,17 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = get_db()
         error = None
-        user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
-        ).fetchone()
+        user = User.query.filter_by(username=username).first()
 
         if user is None:
             error = 'Неправильное имя.'
-        elif not check_password_hash(user['password'], password):
+        elif not user.check_password(password):
             error = 'Неправильный пароль.'
 
         if error is None:
             session.clear()
-            session['user_id'] = user['id']
+            session['user_id'] = user.id
             return redirect(url_for('index'))
 
         flash(error)
@@ -73,9 +75,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
+        g.user = User.query.get(user_id)
 
 
 @bp.route('/logout')

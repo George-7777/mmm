@@ -7,7 +7,7 @@
 {% block content %}
   <form method="post">
     <label for="title">Название её</label>
-    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <input name="title" id="title" value="{{ request.form['title'] }}" required maxlength="200">
     <label for="body">Сама публикация</label>
     <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
     <input type="submit" value="СОХРАНИТЬ">
