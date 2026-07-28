@@ -90,7 +90,7 @@ def view(id):
     return render_template('blog/view.html', post=post)
 
 def change_vote(user_id, post_id, value):
-    post = get_post(post_id)
+    post = get_post(post_id, False)
     if value not in (1, -1, 0):
         raise ValueError("Голос должен быть +1, или -1, или 0")
 

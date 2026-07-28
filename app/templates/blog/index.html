@@ -9,7 +9,7 @@
 
 {% block content %}
   {% for post in posts %}
-    <article class="post" data-url="{{ url_for('blog.view', id=post['id']) }}">
+    <article class="post click_post" data-url="{{ url_for('blog.view', id=post['id']) }}">
       <header>
         <div>
           <h1>{{ post['title'] }}</h1>
