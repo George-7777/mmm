@@ -4,6 +4,8 @@ version = "0.0.1"
 description = "Простая социальная сеть для общения молодежоактивных между собой."
 dependencies = [
     "flask",
+    "flask-sqlalchemy",
+    "Flask-Migrate"
 ]
 
 [build-system]
