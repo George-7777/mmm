@@ -16,11 +16,29 @@
         </div>
       </header>
       <p class="body">{{ post['body'] }}</p>
+        <hr>
       <p class="rating">Рейтинг: {{ post.rating }}</p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
         <button type="submit" name="value" value="0">✊</button>
         <button type="submit" name="value" value="1">👍</button>
         <button type="submit" name="value" value="-1">👎</button>
       </form>
+      <form class="comment" method="post" action="{{ url_for('blog.post_comment', id=post['id']) }}">
+        <label for="body">Ваш комментарий</label>
+        <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+        <input type="submit" value="СОХРАНИТЬ">
+      </form>
     </article>
+    <hr>
+    <h1>Комментарии к посту:</h1>
+    {% for comment in post.comments %}
+    <article class="post">
+      <header>
+        <div>
+          <div class="about">by {{ comment.author.username }} on {{ comment['created'].strftime('%Y-%m-%d') }}</div>
+        </div>
+      </header>
+      <p class="body">{{ comment['body'] }}</p>
+    </article>
+    {% endfor %}
 {% endblock %}

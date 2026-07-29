@@ -29,3 +29,4 @@ input[type=submit] { align-self: start; min-width: 10em; }
 .rating { color: #de4f18; font-size: 20px; font-style: right; }
 .rating + form { display: flex; flex-direction: row; }
 .rating + form button { font-size: 25px; }
+form.comment textarea { min-height: 5em; }

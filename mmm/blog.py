@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 from mmm.auth import login_required
 
 from . import db
-from .models import Post, User, Vote
+from .models import Post, User, Vote, Comment
 
 bp = Blueprint('blog', __name__)
 
@@ -27,6 +27,8 @@ def create():
 
         if not title:
             error = 'Как корабль назовешь, так он и поплывет! Назови.'
+        if len(title) > 200:
+            error = 'Большое название 0_0'
 
         if error is not None:
             flash(error)
@@ -117,3 +119,16 @@ def vote(id):
         abort(400, str(e))
 
     return redirect(url_for('blog.index'))
+
+@bp.route('/<int:id>/comments', methods=('POST',))
+@login_required
+def post_comment(id):
+    post = get_post(id)
+    body = request.form.get('body', type=str)
+    if body == '':
+        abort(400, "какой смысл тебе пустые комментарии слать?")
+    new_comment = Comment(body=body, author_id=g.user.id, post_id=post.id)
+    db.session.add(new_comment)
+    db.session.commit()
+
+    return redirect(url_for('blog.view', id=id))
