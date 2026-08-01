@@ -100,8 +100,11 @@ def change_vote(user_id, post_id, value):
 
     if exciting_vote:
         post.rating -= exciting_vote.value
-        post.rating += value
-        exciting_vote.value = value
+        if exciting_vote.value != value:
+            post.rating += value
+            exciting_vote.value = value
+        else:
+            exciting_vote.value = 0
     else:
         post.rating += value
         new_vote = Vote(user_id=user_id, post_id=post_id, value=value)
@@ -123,7 +126,7 @@ def vote(id):
 @bp.route('/<int:id>/comments', methods=('POST',))
 @login_required
 def post_comment(id):
-    post = get_post(id)
+    post = get_post(id, False)
     body = request.form.get('body', type=str)
     if body == '':
         abort(400, "какой смысл тебе пустые комментарии слать?")

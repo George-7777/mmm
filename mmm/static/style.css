@@ -30,3 +30,10 @@ input[type=submit] { align-self: start; min-width: 10em; }
 .rating + form { display: flex; flex-direction: row; }
 .rating + form button { font-size: 25px; }
 form.comment textarea { min-height: 5em; }
+.active_vote { background-color: green; }
+button.comments { margin-left: 15px; }
+button.nobtn:disabled {
+  opacity: 1;
+  background-color: grey;
+    color: black;
+}

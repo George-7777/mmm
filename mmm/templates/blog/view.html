@@ -19,9 +19,23 @@
         <hr>
       <p class="rating">Рейтинг: {{ post.rating }}</p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
-        <button type="submit" name="value" value="0">✊</button>
-        <button type="submit" name="value" value="1">👍</button>
-        <button type="submit" name="value" value="-1">👎</button>
+        <button type="submit" name="value" value="1"
+        {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
+                    | selectattr('post_id', 'equalto', post.id)
+                    | selectattr('value', 'equalto', 1)
+                    | first %}
+        class="active_vote"
+        {% endif %}
+        >👍</button>
+        <button class="nobtn" disabled>{{ post.rating }}</button>
+        <button type="submit" name="value" value="-1"
+        {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
+                    | selectattr('post_id', 'equalto', post.id)
+                    | selectattr('value', 'equalto', -1)
+                    | first %}
+        class="active_vote"
+        {% endif %}>👎</button>
+        <button disabled class="comments nobtn"><a href="{{ url_for('blog.view', id=post['id']) }}">Комментариев: {{ post.comments.count() }}</a></button>
       </form>
       <form class="comment" method="post" action="{{ url_for('blog.post_comment', id=post['id']) }}">
         <label for="body">Ваш комментарий</label>
