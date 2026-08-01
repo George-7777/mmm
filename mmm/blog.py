@@ -123,7 +123,7 @@ def vote(id):
 @bp.route('/<int:id>/comments', methods=('POST',))
 @login_required
 def post_comment(id):
-    post = get_post(id)
+    post = get_post(id, False)
     body = request.form.get('body', type=str)
     if body == '':
         abort(400, "какой смысл тебе пустые комментарии слать?")
