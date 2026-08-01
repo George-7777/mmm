@@ -1,11 +1,15 @@
 import functools
+import string
+from datetime import datetime
 
+import flask
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 
 from . import db
 from .models import User
+from .utils import generate_confirmation_token, send_confirmation_email, confirm_token
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -15,29 +19,54 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        email = request.form['email']
         error = None
 
         if not username:
             error = 'Имя нужно.'
         elif not password:
             error = 'Пароль тоже нужен.'
+        elif (not email) or ('@' not in email) or ('.' not in email):
+            error = 'Некорректная почта'
+        elif len(username) > 20:
+            error = 'ТЫ СЛИШКОМ ДОЛГО ЗОВЕШЬСЯ'
+        elif not set(username).issubset(set(string.ascii_letters + string.digits + string.punctuation)):
+            error = 'пожалуйста, не выпендривайтесь и используйте в своём нике только латиницу, цифры и спецсимволы'
+
+        exciting_user = User.query.filter_by(username=username).first()
+
+        if exciting_user:
+            if (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
+                    'CONFIRMATION_TOKEN_EXPIRATION', 3600):
+                db.session.delete(exciting_user)
+                db.session.commit()
+            else:
+                error = f"Пользователь с именем {username} уже зарегистрирован."
+
+        exciting_user = User.query.filter_by(email=email).first()
+
+        if exciting_user:
+            if (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
+                    'CONFIRMATION_TOKEN_EXPIRATION', 3600):
+                db.session.delete(exciting_user)
+                db.session.commit()
+            else:
+                error = f"Пользователь с почтой {email} уже зарегистрирован."
 
         if error is None:
-            exciting_user = User.query.filter_by(username=username).first()
-
-            if exciting_user:
-                error = f"Пользователь с именем {username} уже зарегистрирован."
+            user = User(username=username, email=email)
+            user.set_password(password)
+            db.session.add(user)
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                error = "Ошибка при регистрации."
             else:
-                user = User(username=username)
-                user.set_password(password)
-                db.session.add(user)
-                try:
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
-                    error = "Ошибка при регистрации."
-                else:
-                    return redirect(url_for('auth.login'))
+                token = generate_confirmation_token(email)
+                send_confirmation_email(email, token)
+                flash('PR0верь твоего ПОЧТенного гонца! {перевод для нормисов (не будь им!?): чекни почту}')
+                return redirect(url_for('auth.login'))
 
         flash(error)
 
@@ -56,6 +85,9 @@ def login():
             error = 'Неправильное имя.'
         elif not user.check_password(password):
             error = 'Неправильный пароль.'
+        elif not user.verified and user.email:
+            print(user.email)
+            error = 'Сначала проверь почтовичка в спаме! И утверди деяние!'
 
         if error is None:
             session.clear()
@@ -81,6 +113,25 @@ def load_logged_in_user():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+@bp.route('/confirm/<token>')
+def confirm_email(token):
+    email = confirm_token(token)
+    if not email:
+        flash('ОП0ЗДАЛ тВОЙ гонец... Или ты сам! Попробуй изнова!')
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        flash('Такого нет человека 0_0')
+        return redirect(url_for('login'))
+    if user.verified:
+        flash('Усё уже готово, человек (?)')
+    else:
+        user.verified = True
+        db.session.commit()
+        flash('М0ЛОДЦА! Теперь ты можешь войти.')
+    return redirect(url_for('auth.login'))
 
 
 def login_required(view):

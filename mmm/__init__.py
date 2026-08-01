@@ -3,6 +3,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_migrate import Migrate
+from flask_mail import Mail
+
+mail = Mail()
 
 class Base(DeclarativeBase):
     pass
@@ -29,6 +32,7 @@ def create_app(test_config=None):
         return 'Hello, World!'
 
     db.init_app(app)
+    mail.init_app(app)
 
     migrate = Migrate(app, db)
 
