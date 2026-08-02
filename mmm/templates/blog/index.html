@@ -33,10 +33,10 @@
           {% if not loop.last %} {% endif %}
         {% endfor %}
       {% else %}
-        <span>Нет тегов</span>
+        <span class="tag">Нет тегов</span>
       {% endif %}
 </div>
-      <p class="rating">Рейтинг: </p>
+      <p class="rating"></p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
         <button type="submit" name="value" value="1"
         {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
