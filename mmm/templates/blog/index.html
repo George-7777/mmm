@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}ВЕЛИКИЕ ПОСТЫ и поменьше{% endblock %}</h1>
+
+  <h1>{% block title %}ВЕЛИКИЕ ПОСТЫ и поменьше{% if current_tag %} с меткой "{{ current_tag }}"{% endif %}{% endblock %}</h1>
   {% if g.user %}
     <a class="action" href="{{ url_for('blog.create') }}">Свершить новый</a>
   {% endif %}
@@ -20,6 +21,21 @@
         {% endif %}
       </header>
       <p class="body">{{ post['body'] }}</p>
+      <div class="tags">
+      {% if post.tags %}
+      {% set tags_list = post.tags.split(' ') %}
+        {% for tag in tags_list %}
+          <span class="tag">
+            <a href="{{ url_for('blog.index', tag=tag.strip()) }}">
+              #{{ tag.strip() }}
+            </a>
+          </span>
+          {% if not loop.last %} {% endif %}
+        {% endfor %}
+      {% else %}
+        <span>Нет тегов</span>
+      {% endif %}
+</div>
       <p class="rating">Рейтинг: </p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
         <button type="submit" name="value" value="1"

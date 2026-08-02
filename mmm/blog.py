@@ -1,6 +1,9 @@
+import string
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
+from sqlalchemy import or_
 from werkzeug.exceptions import abort
 
 from mmm.auth import login_required
@@ -13,8 +16,22 @@ bp = Blueprint('blog', __name__)
 
 @bp.route('/')
 def index():
-    posts = db.session.query(Post).join(User).order_by(Post.created.desc()).all()
-    return render_template('blog/index.html', posts=posts)
+    tag = request.args.get('tag')
+
+    query = db.session.query(Post).join(User)
+
+    if tag:
+        query = query.filter(
+            or_(
+                Post.tags == tag,
+                Post.tags.like(f'{tag} %'),
+                Post.tags.like(f'% {tag} %'),
+                Post.tags.like(f'% {tag}')
+            )
+        )
+
+    posts = query.order_by(Post.created.desc()).all()
+    return render_template('blog/index.html', posts=posts, current_tag=tag)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -23,17 +40,22 @@ def create():
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
+        tags = request.form['tags']
         error = None
 
         if not title:
             error = 'Как корабль назовешь, так он и поплывет! Назови.'
         if len(title) > 200:
             error = 'Большое название 0_0'
+        if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя")):
+            error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка'
+        if len(tags) > 200:
+            error = 'Слишком много меток/метки слишком большие/метки слишком большие и их слишком много'
 
         if error is not None:
             flash(error)
         else:
-            new_post = Post(title=title, body=body, author=g.user)
+            new_post = Post(title=title, body=body, author=g.user, tags=tags)
             db.session().add(new_post)
             db.session.commit()
             return redirect(url_for('blog.index'))
@@ -61,16 +83,24 @@ def update(id):
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
+        tags = request.form['tags']
         error = None
 
         if not title:
-            error = 'Название нужно.'
+            error = 'Как корабль назовешь, так он и поплывет! Назови.'
+        if len(title) > 200:
+            error = 'Большое название 0_0'
+        if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя")):
+            error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка'
+        if len(tags) > 200:
+            error = 'Слишком много меток/метки слишком большие/метки слишком большие и их слишком много'
 
         if error is not None:
             flash(error)
         else:
             post.title = title
             post.body = body
+            post.tags = tags
             db.session.commit()
             return redirect(url_for('blog.index'))
 

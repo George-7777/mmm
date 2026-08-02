@@ -35,6 +35,7 @@ class Post(db.Model):
     rating = db.Column(db.Integer, default=0, nullable=False, server_default='0')
     votes = db.relationship('Vote', backref='post', lazy='dynamic', cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='post', lazy='dynamic', cascade='all, delete-orphan')
+    tags = db.Column(db.String(200), nullable=True, default='', server_default='')
 
 class Vote(db.Model):
     __tablename__ = 'vote'
