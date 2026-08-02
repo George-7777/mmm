@@ -16,13 +16,41 @@
         </div>
       </header>
       <p class="body">{{ post['body'] }}</p>
-        <hr>
-      <p class="rating">Рейтинг: {{ post.rating }}</p>
+        <div class="tags">
+      {% if post.tags %}
+      {% set tags_list = post.tags.split(' ') %}
+        {% for tag in tags_list %}
+          <span class="tag">
+            <a href="{{ url_for('blog.index', tag=tag.strip()) }}">
+              #{{ tag.strip() }}
+            </a>
+          </span>
+          {% if not loop.last %} {% endif %}
+        {% endfor %}
+      {% else %}
+        <span class="tag">Нет тегов</span>
+      {% endif %}
+      <p class="rating"></p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
-        <button type="submit" name="value" value="0">✊</button>
-        <button type="submit" name="value" value="1">👍</button>
-        <button type="submit" name="value" value="-1">👎</button>
+        <button type="submit" name="value" value="1"
+        {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
+                    | selectattr('post_id', 'equalto', post.id)
+                    | selectattr('value', 'equalto', 1)
+                    | first %}
+        class="active_vote"
+        {% endif %}
+        >👍</button>
+        <button class="nobtn" disabled>{{ post.rating }}</button>
+        <button type="submit" name="value" value="-1"
+        {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
+                    | selectattr('post_id', 'equalto', post.id)
+                    | selectattr('value', 'equalto', -1)
+                    | first %}
+        class="active_vote"
+        {% endif %}>👎</button>
+        <button disabled class="comments nobtn"><a href="{{ url_for('blog.view', id=post['id']) }}">Комментариев: {{ post.comments.count() }}</a></button>
       </form>
+            <hr>
       <form class="comment" method="post" action="{{ url_for('blog.post_comment', id=post['id']) }}">
         <label for="body">Ваш комментарий</label>
         <textarea name="body" id="body">{{ request.form['body'] }}</textarea>

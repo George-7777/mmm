@@ -11,6 +11,8 @@
       value="{{ request.form['title'] or post['title'] }}" required maxlength="200">
     <label for="body">Сама публикация</label>
     <textarea name="body" id="body">{{ request.form['body'] or post['body'] }}</textarea>
+    <label for="tags">Метки к публикации. Пишите маленькими буковами (строчными) разделяя пробелами (цифры можно). Пример: снисходительность понимание доброта кот</label>
+    <input name="tags" id="tags" value="{{ request.form['tags'] or post['tags'] }}" required maxlength="200">
     <input type="submit" value="МЕТАМ0РФ03А">
   </form>
   <hr>

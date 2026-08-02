@@ -17,6 +17,11 @@
   <header>
     {% block header %}{% endblock %}
   </header>
+  {% if g.user and not g.user.email %}
+  <div class="flash">
+  Эй, приятель, как насчет привязать почтовичка сегодняшним днём? <a href="{{ url_for('profile.add_email') }}">Вершить дело здесь!</a>
+  </div>
+  {% endif %}
   {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
   {% endfor %}
