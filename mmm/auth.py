@@ -36,7 +36,7 @@ def register():
         exciting_user = User.query.filter_by(username=username).first()
 
         if exciting_user:
-            if (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
+            if exciting_user.verified == False and (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
                     'CONFIRMATION_TOKEN_EXPIRATION', 3600):
                 db.session.delete(exciting_user)
                 db.session.commit()
@@ -46,7 +46,7 @@ def register():
         exciting_user = User.query.filter_by(email=email).first()
 
         if exciting_user:
-            if (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
+            if exciting_user.verified == False and (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
                     'CONFIRMATION_TOKEN_EXPIRATION', 3600):
                 db.session.delete(exciting_user)
                 db.session.commit()

@@ -12,7 +12,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
     verified = db.Column(db.Boolean, default=False, server_default='0')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     posts = db.relationship('Post', backref='author', lazy=True)
     votes = db.relationship('Vote', backref='author', lazy=True)
