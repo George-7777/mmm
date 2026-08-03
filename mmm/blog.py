@@ -17,6 +17,8 @@ bp = Blueprint('blog', __name__)
 @bp.route('/')
 def index():
     tag = request.args.get('tag')
+    search = request.args.get('search')
+    sort = request.args.get('sort')
 
     query = db.session.query(Post).join(User)
 
@@ -29,7 +31,21 @@ def index():
                 Post.tags.like(f'% {tag}')
             )
         )
-
+    if search:
+        query = query.filter(
+            or_(
+                Post.title.like(f'%{search}%'),
+                Post.body.like(f'%{search}%')
+            )
+        )
+    if sort == 'new' or not sort:
+        query = query.order_by(Post.created.desc())
+    elif sort == 'old':
+        query = query.order_by(Post.created.asc())
+    elif sort == 'best':
+        query = query.order_by(Post.rating.desc())
+    elif sort == 'worst':
+        query = query.order_by(Post.rating.asc())
     posts = query.order_by(Post.created.desc()).all()
     return render_template('blog/index.html', posts=posts, current_tag=tag)
 
