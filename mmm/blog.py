@@ -61,7 +61,7 @@ def create():
 
         if not title:
             error = 'Как корабль назовешь, так он и поплывет! Назови.'
-        if len(title) > 200:
+        if len(title) > 70:
             error = 'Большое название 0_0'
         if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя")):
             error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка'
@@ -104,7 +104,7 @@ def update(id):
 
         if not title:
             error = 'Как корабль назовешь, так он и поплывет! Назови.'
-        if len(title) > 200:
+        if len(title) > 70:
             error = 'Большое название 0_0'
         if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя")):
             error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка'
@@ -174,8 +174,10 @@ def vote(id):
 def post_comment(id):
     post = get_post(id, False)
     body = request.form.get('body', type=str)
-    if body == '':
+    if not body:
         abort(400, "какой смысл тебе пустые комментарии слать?")
+    elif len(body) > 400:
+        abort(400, "ТЫ СЛИШКОМ ДОЛГО ПИШЕШЬ КОММЕНТЫ")
     new_comment = Comment(body=body, author_id=g.user.id, post_id=post.id)
     db.session.add(new_comment)
     db.session.commit()

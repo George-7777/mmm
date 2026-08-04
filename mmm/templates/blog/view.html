@@ -53,7 +53,7 @@
             <hr>
       <form class="comment" method="post" action="{{ url_for('blog.post_comment', id=post['id']) }}">
         <label for="body">Ваш комментарий</label>
-        <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+        <textarea name="body" id="body" required maxlength="400">{{ request.form['body'] }}</textarea>
         <input type="submit" value="СОХРАНИТЬ">
       </form>
     </article>

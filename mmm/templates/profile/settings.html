@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Настройка профиля{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <p>Пока-что самого профиля нет, но ты уже можешь много интересного свершить</p>
+  <form method="post">
+    <label for="username">Поменять имя:</label>
+    <input name="username" id="username" value="{{ g.user['username'] }}" required maxlength="20">
+    <label>Поменять пароль TODO:здесь</label>
+    <label for="email">Поменять почту:</label>
+    <input type="email" name="email" id="email" value="{{ g.user['email'] }}" required>
+      <span class="danger">При смене почты нужно будет провести активацию аккаунта заново!</span>
+    <input type="submit" value="С0ХРАНИТЬ твоё новое 0БЛИЧИЕ">
+  </form>
+{% endblock %}

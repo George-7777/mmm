@@ -1,4 +1,6 @@
-from mmm.auth import login_required
+import string
+
+from mmm.auth import login_required, delete_verified, check_username, check_email
 from datetime import datetime
 
 import flask
@@ -8,7 +10,7 @@ from flask import (
 
 from . import db
 from .models import User
-from .utils import generate_confirmation_token, send_confirmation_email, confirm_token
+from .utils import generate_confirmation_token, send_confirmation_email
 
 bp = Blueprint('profile', __name__, url_prefix='/profile')
 
@@ -46,3 +48,33 @@ def add_email():
             return render_template('profile/add_email.html')
     else:
         return render_template('profile/add_email.html')
+
+@bp.route('/settings', methods=('GET', 'POST'))
+@login_required
+def settings():
+    if request.method == 'POST':
+        email = request.form['email']
+        username = request.form['username']
+        error = None
+        user = User.query.filter_by(username=g.user.username).first()
+        if g.user.username != username:
+            error = check_username(username) or error
+        if g.user.email != email:
+            error = check_email(email) or error
+
+        if error is None:
+            user.username = username
+
+            if user.email != email:
+                user.email = email
+                user.verified = False
+                token = generate_confirmation_token(email)
+                send_confirmation_email(email, token)
+                session.clear()
+                flash('PR0верь твоего ПОЧТенного гонца! {перевод для нормисов (не будь им!?): чекни почту}')
+                db.session.commit()
+                return redirect(url_for('auth.login'))
+            db.session.commit()
+        else:
+            flash(error)
+    return render_template('profile/settings.html')

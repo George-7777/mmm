@@ -24,6 +24,7 @@ nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
 .content textarea { min-height: 12em; resize: vertical; }
 input.danger { color: #003aff; }
 input[type=submit] { align-self: start; min-width: 10em; }
+span.danger { background-color: black; border: 3px solid red; color: red; padding: 5px; margin-bottom: 20px; }
 .click_post { cursor: pointer; }
 .back { margin-right: 10px; }
 .rating { color: #de4f18; font-size: 20px; font-style: right; }

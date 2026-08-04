@@ -22,36 +22,14 @@ def register():
         email = request.form['email']
         error = None
 
-        if not username:
-            error = 'Имя нужно.'
-        elif not password:
+
+        if not password:
             error = 'Пароль тоже нужен.'
-        elif (not email) or ('@' not in email) or ('.' not in email):
-            error = 'Некорректная почта'
-        elif len(username) > 20:
-            error = 'ТЫ СЛИШКОМ ДОЛГО ЗОВЕШЬСЯ'
-        elif not set(username).issubset(set(string.ascii_letters + string.digits + string.punctuation)):
-            error = 'пожалуйста, не выпендривайтесь и используйте в своём нике только латиницу, цифры и спецсимволы'
 
-        exciting_user = User.query.filter_by(username=username).first()
 
-        if exciting_user:
-            if exciting_user.verified == False and (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
-                    'CONFIRMATION_TOKEN_EXPIRATION', 3600):
-                db.session.delete(exciting_user)
-                db.session.commit()
-            else:
-                error = f"Пользователь с именем {username} уже зарегистрирован."
+        error = check_username(username) or error
 
-        exciting_user = User.query.filter_by(email=email).first()
-
-        if exciting_user:
-            if exciting_user.verified == False and (datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
-                    'CONFIRMATION_TOKEN_EXPIRATION', 3600):
-                db.session.delete(exciting_user)
-                db.session.commit()
-            else:
-                error = f"Пользователь с почтой {email} уже зарегистрирован."
+        error = check_email(email) or error
 
         if error is None:
             user = User(username=username, email=email)
@@ -143,3 +121,39 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+def delete_verified(exciting_user):
+    if not exciting_user:
+        return None
+    if exciting_user.verified == False and exciting_user.email and (
+            datetime.utcnow() - exciting_user.created_at).total_seconds() > flask.current_app.config.get(
+        'CONFIRMATION_TOKEN_EXPIRATION', 3600):
+        db.session.delete(exciting_user)
+        db.session.commit()
+        return None
+    return exciting_user
+
+def check_username(username: str, check_exc=True):
+    if not username:
+        return 'Имя нужно.'
+    elif len(username) > 20:
+        return 'ТЫ СЛИШКОМ ДОЛГО ЗОВЕШЬСЯ'
+    elif not set(username).issubset(set(string.ascii_letters + string.digits + string.punctuation)):
+        return 'пожалуйста, не выпендривайтесь и используйте в своём нике только латиницу, цифры и спецсимволы'
+    exciting_user = delete_verified(User.query.filter_by(username=username).first())
+
+    if exciting_user and check_exc:
+        return f"Пользователь с именем {username} уже зарегистрирован."
+    return None
+
+def check_email(email: str, check_exc=True):
+    if not email:
+        return 'Почтовичка забыли!'
+    elif (not email) or ('@' not in email) or ('.' not in email):
+        return 'Некорректная почта'
+
+    exciting_user = delete_verified(User.query.filter_by(email=email).first())
+
+    if exciting_user and check_exc:
+        return f"Пользователь с почтой {email} уже зарегистрирован."
+    return None
