@@ -17,6 +17,22 @@ def send_confirmation_email(user_email, token):
     <p>И да, это не корпоратик почта, а моя личная, чтобы доверяли вы мне.</p>
     <strong>3СЛИ не ЖМЯКАЕТСЯ, то РУ4КАми Ctrl+C Ctrl+V в строку адреса от твоего интернет-обозревателя.</strong>
     """
+    send_message(user_email, subject, html)
+
+def send_password_reset_email(user_email, token):
+    confirm_url = url_for('auth.reset_password', token=token, _external=True)
+    subject = "Сброс пароля. Кофе помогает от Альцгеймера"
+    html = f"""
+        <p>Для сброса пароля шлепайте по ссылке:</p>
+        <a href="{confirm_url}">{confirm_url}</a>
+        <p>Ссылка действительна в течение часа.</p>
+        <br>
+        <p>И да, это не корпоратик почта, а моя личная, чтобы доверяли вы мне.</p>
+        <strong>3СЛИ не ЖМЯКАЕТСЯ, то РУ4КАми Ctrl+C Ctrl+V в строку адреса от твоего интернет-обозревателя.</strong>
+        """
+    send_message(user_email, subject, html)
+
+def send_message(user_email, subject, html):
     msg = Message(subject, recipients=[user_email], html=html, sender=current_app.config.get('MAIL_DEFAULT_SENDER'))
     mail.send(msg)
 

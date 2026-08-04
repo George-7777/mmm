@@ -9,7 +9,7 @@ from flask import (
 
 from . import db
 from .models import User
-from .utils import generate_confirmation_token, send_confirmation_email, confirm_token
+from .utils import generate_confirmation_token, send_confirmation_email, confirm_token, send_password_reset_email
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -20,7 +20,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
-        
+
         error = check_password(password)
         error = check_username(username) or error
         error = check_email(email) or error
@@ -88,10 +88,12 @@ def logout():
 
 @bp.route('/confirm/<token>')
 def confirm_email(token):
+    if g.user:
+        return redirect(url_for('index'))
     email = confirm_token(token)
     if not email:
         flash('ОП0ЗДАЛ тВОЙ гонец... Или ты сам! Попробуй изнова!')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     user = User.query.filter_by(email=email).first()
     if user is None:
@@ -105,6 +107,50 @@ def confirm_email(token):
         flash('М0ЛОДЦА! Теперь ты можешь войти.')
     return redirect(url_for('auth.login'))
 
+@bp.route('/reset_password', methods=('GET', 'POST'))
+def reset_form():
+    if g.user:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email, verified = True).first()
+        if user:
+            token = generate_confirmation_token(email)
+            send_password_reset_email(email, token)
+            flash('PR0верь твоего ПОЧТенного гонца! {перевод для нормисов (не будь им!?): чекни почту}')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Не зарегистрирован такой человек!')
+
+    return render_template('auth/reset_form.html')
+
+@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if g.user:
+        return redirect(url_for('index'))
+    email = confirm_token(token)
+    if not email:
+        flash('ОП0ЗДАЛ тВОЙ гонец... Или ты сам! Попробуй изнова!')
+        return redirect(url_for('auth.reset_form'))
+
+    if request.method == 'POST':
+        password = request.form['password']
+        password_confirm = request.form['password_repeat']
+        error = None
+        if password != password_confirm:
+            error = 'Пароли не совпадают!'
+        error = check_password(password) or error
+
+        if not error:
+            user = User.query.filter_by(email=email).first()
+            user.set_password(password)
+            db.session.commit()
+            flash("М0ЛОДЦА! Теперь можете заходить с новым паролем")
+            return redirect(url_for('auth.login'))
+        else:
+            flash(error)
+
+    return render_template('auth/reset_password.html')
 
 def login_required(view):
     @functools.wraps(view)
@@ -143,7 +189,7 @@ def check_username(username: str, check_exc=True):
 def check_email(email: str, check_exc=True):
     if not email:
         return 'Почтовичка забыли!'
-    elif (not email) or ('@' not in email) or ('.' not in email):
+    elif (not email) or ('@' not in email) or ('.' not in email) or len(email) > 300:
         return 'Некорректная почта'
 
     exciting_user = delete_verified(User.query.filter_by(email=email).first())
