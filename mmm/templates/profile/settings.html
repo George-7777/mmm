@@ -9,7 +9,10 @@
   <form method="post">
     <label for="username">Поменять имя:</label>
     <input name="username" id="username" value="{{ g.user['username'] }}" required maxlength="20">
-    <label>Поменять пароль TODO:здесь</label>
+    <label for="password">Поменять пароль:</label>
+    <input type="password" name="password" id="password" value="" autocomplete="new-password">
+    <label for="password_repeat">Хз зачем это на сайтах спрашивают, но повторите измененный пароль:</label>
+    <input type="password" name="password_repeat" id="password_repeat" value="" autocomplete="new-password">
     <label for="email">Поменять почту:</label>
     <input type="email" name="email" id="email" value="{{ g.user['email'] }}" required>
       <span class="danger">При смене почты нужно будет провести активацию аккаунта заново!</span>

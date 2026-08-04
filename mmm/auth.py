@@ -20,15 +20,9 @@ def register():
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
-        error = None
-
-
-        if not password:
-            error = 'Пароль тоже нужен.'
-
-
+        
+        error = check_password(password)
         error = check_username(username) or error
-
         error = check_email(email) or error
 
         if error is None:
@@ -156,4 +150,11 @@ def check_email(email: str, check_exc=True):
 
     if exciting_user and check_exc:
         return f"Пользователь с почтой {email} уже зарегистрирован."
+    return None
+
+def check_password(password: str):
+    if not password:
+        return "Без пароля нельзя!"
+    elif len(password) > 100:
+        return "Чего-то ты пароль перемудрил"
     return None
