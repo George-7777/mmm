@@ -3,6 +3,13 @@
 {% block header %}
   <a class="back" href="{{ url_for('blog.index') }}">Назад</a>
   <h1>{% block title %}{{ post['title'] }}{% endblock %}</h1>
+    <a class="action" href="{{ url_for('profile.change_sub_post', post_id=post['id']) }}">
+        {% if g.user.is_subscribed_to_post(post.id) %}
+        Отписаться от обсуждения
+        {% else %}
+        Подписаться на обсуждение
+        {% endif %}
+    </a>
   {% if g.user['id'] == post['author_id'] %}
     <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Видоизменить</a>
   {% endif %}
@@ -30,6 +37,7 @@
       {% else %}
         <span class="tag">Нет тегов</span>
       {% endif %}
+        </div>
       <p class="rating"></p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
         <button type="submit" name="value" value="1"

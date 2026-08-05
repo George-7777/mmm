@@ -1,4 +1,5 @@
 import string
+from email import message
 
 from mmm.auth import login_required, delete_verified, check_username, check_email, check_password
 from datetime import datetime
@@ -57,6 +58,7 @@ def settings():
         username = request.form['username']
         password = request.form['password']
         password_confirm = request.form['password_repeat']
+        sub_global = request.form.get('subscribe')
         error = None
         user = User.query.filter_by(username=g.user.username).first()
         if g.user.username != username:
@@ -70,6 +72,11 @@ def settings():
 
         if error is None:
             user.username = username
+
+            if sub_global:
+                user.subscribe_to_global()
+            else:
+                user.unsubscribe_from_global()
 
             if password:
                 user.set_password(password)
@@ -88,3 +95,18 @@ def settings():
         else:
             flash(error)
     return render_template('profile/settings.html')
+
+@bp.route('/subscribe/post/<int:post_id>')
+@login_required
+def change_sub_post(post_id):
+    user = User.query.filter_by(username=g.user.username).first()
+    if user.is_subscribed_to_post(post_id):
+        user.unsubscribe_from_post(post_id)
+        message = 'Вы отписались от обсуждения поста'
+    else:
+        user.subscribe_to_post(post_id)
+        message = 'Вы подписались на обсуждение поста'
+
+    flash(message)
+
+    return redirect(url_for('blog.view', id=post_id))

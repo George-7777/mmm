@@ -9,7 +9,8 @@ from werkzeug.exceptions import abort
 from mmm.auth import login_required
 
 from . import db
-from .models import Post, User, Vote, Comment
+from .models import Post, User, Vote, Comment, Subscribes
+from .utils import send_notification_post, send_notification_comment
 
 bp = Blueprint('blog', __name__)
 
@@ -63,8 +64,8 @@ def create():
             error = 'Как корабль назовешь, так он и поплывет! Назови.'
         if len(title) > 70:
             error = 'Большое название 0_0'
-        if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя")):
-            error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка'
+        if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя_-")):
+            error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка а_вы_знали'
         if len(tags) > 200:
             error = 'Слишком много меток/метки слишком большие/метки слишком большие и их слишком много'
 
@@ -74,6 +75,9 @@ def create():
             new_post = Post(title=title, body=body, author=g.user, tags=tags)
             db.session().add(new_post)
             db.session.commit()
+
+            send_notification_post(get_global_subscribers_emails() , new_post)
+
             return redirect(url_for('blog.index'))
 
     return render_template('blog/create.html')
@@ -106,8 +110,8 @@ def update(id):
             error = 'Как корабль назовешь, так он и поплывет! Назови.'
         if len(title) > 70:
             error = 'Большое название 0_0'
-        if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя")):
-            error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка'
+        if not set(tags).issubset(set(string.ascii_lowercase + string.digits + " абвгдеёжзийклмнопрстуфхцчшщъыьэюя_-")):
+            error = 'Пишите теги только строчными буквами {перевод для нормисов: маленькими} разделяя их проблемами. Пример: нога демократия апокалипсис тарелка а_вы_знали'
         if len(tags) > 200:
             error = 'Слишком много меток/метки слишком большие/метки слишком большие и их слишком много'
 
@@ -182,4 +186,27 @@ def post_comment(id):
     db.session.add(new_comment)
     db.session.commit()
 
+    emails = get_post_subscribers_emails(id)
+    if emails:
+        send_notification_comment(emails, new_comment)
+
     return redirect(url_for('blog.view', id=id))
+
+
+# TODO: вынести эти функции в модель подписок/пользователя
+def get_global_subscribers_emails():
+    query = db.session.query(User.email).join(Subscribes, User.id == Subscribes.user_id).filter(
+        Subscribes.type == 'global',
+    ).distinct()
+
+    emails = [row[0] for row in query.all()]
+    return emails
+
+def get_post_subscribers_emails(post_id):
+    query = db.session.query(User.email).join(Subscribes, User.id == Subscribes.user_id).filter(
+        Subscribes.type == 'discussion',
+        Subscribes.subject_id == post_id,
+    ).distinct()
+
+    emails = [row[0] for row in query.all()]
+    return emails
