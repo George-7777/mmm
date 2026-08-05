@@ -3,6 +3,13 @@
 {% block header %}
   <a class="back" href="{{ url_for('blog.index') }}">Назад</a>
   <h1>{% block title %}{{ post['title'] }}{% endblock %}</h1>
+    <a class="action" href="{{ url_for('profile.change_sub_post', post_id=post['id']) }}">
+        {% if g.user.is_subscribed_to_post(post.id) %}
+        Отписаться от обсуждения
+        {% else %}
+        Подписаться на обсуждение
+        {% endif %}
+    </a>
   {% if g.user['id'] == post['author_id'] %}
     <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Видоизменить</a>
   {% endif %}
@@ -30,6 +37,7 @@
       {% else %}
         <span class="tag">Нет тегов</span>
       {% endif %}
+        </div>
       <p class="rating"></p>
       <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
         <button type="submit" name="value" value="1"
@@ -53,7 +61,7 @@
             <hr>
       <form class="comment" method="post" action="{{ url_for('blog.post_comment', id=post['id']) }}">
         <label for="body">Ваш комментарий</label>
-        <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+        <textarea name="body" id="body" required maxlength="400">{{ request.form['body'] }}</textarea>
         <input type="submit" value="СОХРАНИТЬ">
       </form>
     </article>
@@ -65,6 +73,10 @@
         <div>
           <div class="about">by {{ comment.author.username }} on {{ comment['created'].strftime('%Y-%m-%d') }}</div>
         </div>
+          {% if g.user['id'] == comment['author_id'] or g.user['id'] == 1 %}
+          <a class="action" href="{{ url_for('blog.update_comment', post_id=post['id'], comment_id=comment['id']) }}">Видоизменить</a>
+          <a class="action" href="{{ url_for('blog.delete_comment', post_id=post['id'], comment_id=comment['id']) }}"><span class="danger">УДАЛИТЬ</span></a>
+          {% endif %}
       </header>
       <p class="body">{{ comment['body'] }}</p>
     </article>

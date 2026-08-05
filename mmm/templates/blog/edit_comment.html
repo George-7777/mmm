@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Редактировать мнение твое{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form class="comment" method="post" action="{{ url_for('blog.update_comment', post_id=comment.post_id, comment_id=comment.id) }}">
+      <label for="body">Ваш комментарий</label>
+      <textarea name="body" id="body" required maxlength="400">{{ comment.body or request.form['body'] }}</textarea>
+      <input type="submit" value="С0ХРАНИТЬ">
+  </form>
+{% endblock %}
