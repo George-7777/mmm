@@ -1,4 +1,7 @@
-from mmm.auth import login_required
+import string
+from email import message
+
+from mmm.auth import login_required, delete_verified, check_username, check_email, check_password
 from datetime import datetime
 
 import flask
@@ -8,7 +11,7 @@ from flask import (
 
 from . import db
 from .models import User
-from .utils import generate_confirmation_token, send_confirmation_email, confirm_token
+from .utils import generate_confirmation_token, send_confirmation_email
 
 bp = Blueprint('profile', __name__, url_prefix='/profile')
 
@@ -46,3 +49,64 @@ def add_email():
             return render_template('profile/add_email.html')
     else:
         return render_template('profile/add_email.html')
+
+@bp.route('/settings', methods=('GET', 'POST'))
+@login_required
+def settings():
+    if request.method == 'POST':
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        password_confirm = request.form['password_repeat']
+        sub_global = request.form.get('subscribe')
+        error = None
+        user = User.query.filter_by(username=g.user.username).first()
+        if g.user.username != username:
+            error = check_username(username) or error
+        if g.user.email != email:
+            error = check_email(email) or error
+        if password != password_confirm:
+            error = 'Пароль неправильно повторен!'
+        if password:
+            error = check_password(password) or error
+
+        if error is None:
+            user.username = username
+
+            if sub_global:
+                user.subscribe_to_global()
+            else:
+                user.unsubscribe_from_global()
+
+            if password:
+                user.set_password(password)
+                flash('Перелогинься с новым паролем!')
+            if user.email != email:
+                user.email = email
+                user.verified = False
+                token = generate_confirmation_token(email)
+                send_confirmation_email(email, token)
+                flash('PR0верь твоего ПОЧТенного гонца! {перевод для нормисов (не будь им!?): чекни почту}')
+            if password or user.email != email:
+                session.clear()
+                db.session.commit()
+                return redirect(url_for('auth.login'))
+            db.session.commit()
+        else:
+            flash(error)
+    return render_template('profile/settings.html')
+
+@bp.route('/subscribe/post/<int:post_id>')
+@login_required
+def change_sub_post(post_id):
+    user = User.query.filter_by(username=g.user.username).first()
+    if user.is_subscribed_to_post(post_id):
+        user.unsubscribe_from_post(post_id)
+        message = 'Вы отписались от обсуждения поста'
+    else:
+        user.subscribe_to_post(post_id)
+        message = 'Вы подписались на обсуждение поста'
+
+    flash(message)
+
+    return redirect(url_for('blog.view', id=post_id))

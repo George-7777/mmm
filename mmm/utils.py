@@ -17,8 +17,108 @@ def send_confirmation_email(user_email, token):
     <p>И да, это не корпоратик почта, а моя личная, чтобы доверяли вы мне.</p>
     <strong>3СЛИ не ЖМЯКАЕТСЯ, то РУ4КАми Ctrl+C Ctrl+V в строку адреса от твоего интернет-обозревателя.</strong>
     """
+    send_message(user_email, subject, html)
+
+def send_password_reset_email(user_email, token):
+    confirm_url = url_for('auth.reset_password', token=token, _external=True)
+    subject = "Сброс пароля. Кофе помогает от Альцгеймера"
+    html = f"""
+        <p>Для сброса пароля шлепайте по ссылке:</p>
+        <a href="{confirm_url}">{confirm_url}</a>
+        <p>Ссылка действительна в течение часа.</p>
+        <br>
+        <p>И да, это не корпоратик почта, а моя личная, чтобы доверяли вы мне.</p>
+        <strong>3СЛИ не ЖМЯКАЕТСЯ, то РУ4КАми Ctrl+C Ctrl+V в строку адреса от твоего интернет-обозревателя.</strong>
+        """
+    send_message(user_email, subject, html)
+
+def send_message(user_email, subject, html):
     msg = Message(subject, recipients=[user_email], html=html, sender=current_app.config.get('MAIL_DEFAULT_SENDER'))
     mail.send(msg)
+
+def send_massive_message(user_emails, subject, html):
+    if user_emails:
+        msg = Message(subject, recipients=user_emails, html=html, sender=current_app.config.get('MAIL_DEFAULT_SENDER'))
+        mail.send(msg)
+
+def send_notification_post(user_emails, post):
+    html = f"""
+        <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="max-width: 600px; margin: 0 auto; background: #4e4848; font-family: sans-serif; padding: 1rem;">
+
+    <article style="background: #4e4848; padding: 0.5rem 0; border-bottom: 1px solid lightgray;">
+
+        <header style="display: flex; align-items: flex-end; font-size: 0.85em;">
+            <div style="flex: auto;">
+                <h1 style="font-family: serif; color: #de4f18; font-size: 1.5em; margin: 0 0 0.25rem 0;">
+                    {post.title}
+                </h1>
+                <div style="color: #007dff; font-style: italic;">
+                    by {post.author.username} on {post.created.strftime('%Y-%m-%d')}
+                </div>
+            </div>
+        </header>
+
+        <p style="white-space: pre-line; margin: 0.5rem 0; color: #fff; font-family: sans-serif;">
+            {post.body}
+        </p>
+        
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+            <a href="{url_for('blog.view', id=post.id, _external=True)}" 
+               style="color: #ff0000; text-decoration: none;">
+                Посмотреть на МММ →
+            </a>
+        </p>
+
+    </article>
+
+</body>
+</html>
+    """
+
+    send_massive_message(user_emails, "УВЕДОМЛЕНИЕ - Новая публикация на МММ: " + post.title, html)
+
+def send_notification_comment(user_email, comment):
+    html = f"""
+        <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="max-width: 600px; margin: 0 auto; background: #4e4848; font-family: sans-serif; padding: 1rem;">
+
+    <article style="background: #4e4848; padding: 0.5rem 0; border-bottom: 1px solid lightgray;">
+
+        <header style="display: flex; align-items: flex-end; font-size: 0.85em; margin-bottom: 0.25rem;">
+            <div style="flex: auto;">
+                <div style="color: #007dff; font-style: italic;">
+                    {comment.author.username} commented on {comment.created.strftime('%Y-%m-%d')}
+                </div>
+            </div>
+        </header>
+
+        <p style="white-space: pre-line; margin: 0.5rem 0; color: #ffffff; font-family: sans-serif; font-size: 1rem; line-height: 1.4;">
+            {comment.body}
+        </p>
+
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+            <a href="{url_for('blog.view', id=comment.post_id, _external=True)}" 
+               style="color: #ff0000; text-decoration: none;">
+                Посмотреть обсуждение →
+            </a>
+        </p>
+
+    </article>
+
+</body>
+</html>
+    """
+
+    send_massive_message(user_email, f"УВЕДОМЛЕНИЕ - Новый комментарий под постом {comment.post.title}", html)
 
 def generate_confirmation_token(email):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])

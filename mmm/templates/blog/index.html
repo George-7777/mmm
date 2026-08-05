@@ -9,6 +9,22 @@
 {% endblock %}
 
 {% block content %}
+    <form class="searchbar" method="get" action="{{ url_for('blog.index') }}">
+        <input name="search" id="search"
+            value="{{ request.args.get('search', '') }}" placeholder="Сыщик публикаций" maxlength="200">
+        <input type="submit" value="ПРИМЕНИТЬ">
+        {% if current_tag %}
+        <input name="tag" id="costilni_costil" style="display: none" value="{{ current_tag }}">
+        {% endif %}
+        <select name="sort" id="sort">
+            {% set sort = request.args.get('sort') %}
+            <option value="new" {% if not sort or sort == 'new' %} selected {% endif %}>Сначала новые</option>
+            <option value="old" {% if sort == 'old' %} selected {% endif %}>Сначала старые</option>
+            <option value="best" {% if sort == 'best' %} selected {% endif %}>Сначала лучшие (по мнению социума)</option>
+            <option value="worst" {% if sort == 'worst' %} selected {% endif %}>Сначала худшие (по мнению социума)</option>
+        </select>
+    </form>
+<hr>
   {% for post in posts %}
     <article class="post click_post" data-url="{{ url_for('blog.view', id=post['id']) }}">
       <header>
@@ -16,7 +32,7 @@
           <h1>{{ post['title'] }}</h1>
           <div class="about">by {{ post.author.username }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
         </div>
-        {% if g.user['id'] == post['author_id'] %}
+        {% if g.user['id'] == post['author_id'] or g.user['id'] == 1 %}
           <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Видоизменить</a>
         {% endif %}
       </header>

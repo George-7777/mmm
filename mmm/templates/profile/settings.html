@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Настройка профиля{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <p>Пока-что самого профиля нет, но ты уже можешь много интересного свершить</p>
+  <form method="post">
+    <label for="username">Поменять имя:</label>
+    <input name="username" id="username" value="{{ g.user['username'] }}" required maxlength="20">
+    <label for="password">Поменять пароль:</label>
+    <input type="password" name="password" id="password" value="" autocomplete="new-password">
+    <label for="password_repeat">Хз зачем это на сайтах спрашивают, но повторите измененный пароль:</label>
+    <input type="password" name="password_repeat" id="password_repeat" value="" autocomplete="new-password">
+    <label for="email">Поменять почту:</label>
+    <input type="email" name="email" id="email" value="{{ g.user['email'] }}" required>
+      <span class="danger">При смене почты нужно будет провести активацию аккаунта заново!</span>
+    <label>
+      <input type="checkbox" name="subscribe" value="on" {% if g.user.is_subscribed_to_global() %} checked {% endif %}> Получать уведомления о ВСЕХ постах на МММ.
+    </label>
+    <input type="submit" value="С0ХРАНИТЬ твоё новое 0БЛИЧИЕ">
+  </form>
+{% endblock %}
