@@ -89,11 +89,19 @@ def get_post(id, check_author=True):
     if post is None:
         abort(404, f"Публикация под номером {id} не существует!")
 
-    if check_author and post.author_id != g.user.id:
+    if check_author and post.author_id != g.user.id and g.user.id != 1: #TODO: нормальная админка
         abort(403, "Это не твоя публикация, ушлёпок!")
 
     return post
 
+def get_comment(id, post_id, check_author=True):
+    comment = Comment.query.filter(Comment.id == id, Comment.post_id == post_id).first()
+    if not comment:
+        abort(400, "Такого комментария нет")
+    if comment.author_id != g.user.id and g.user.id != 1:  # TODO: убрать тестовую админку и сделать нормальную
+        abort(400, "Не твой комментарий")
+
+    return comment
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -133,6 +141,7 @@ def delete(id):
     post = get_post(id)
     db.session.delete(post)
     db.session.commit()
+    flash("Публикация удаленААА")
 
     return redirect(url_for('blog.index'))
 
@@ -140,6 +149,31 @@ def delete(id):
 def view(id):
     post = get_post(id, False)
     return render_template('blog/view.html', post=post)
+
+# TODO: вынести в блюпринт комментариев
+@bp.route('/<int:post_id>/comments/<int:comment_id>', methods=('GET', 'POST'))
+@login_required
+def update_comment(post_id, comment_id):
+    comment = get_comment(comment_id, post_id)
+    if request.method == 'POST':
+        body = request.form.get('body', type=str)
+        comment_validator(body)
+        comment.body = body
+        db.session.commit()
+        flash("Комментарий изменен")
+        return redirect(url_for('blog.view', id=post_id))
+    else:
+        return render_template('blog/edit_comment.html', comment=comment)
+
+@bp.route('/<int:post_id>/comments/<int:comment_id>/delete', methods=('POST', 'GET'))
+@login_required
+def delete_comment(post_id, comment_id):
+    comment = get_comment(comment_id, post_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash("Комментарий удален")
+
+    return redirect(url_for('blog.view', id=post_id))
 
 def change_vote(user_id, post_id, value):
     post = get_post(post_id, False)
@@ -178,10 +212,7 @@ def vote(id):
 def post_comment(id):
     post = get_post(id, False)
     body = request.form.get('body', type=str)
-    if not body:
-        abort(400, "какой смысл тебе пустые комментарии слать?")
-    elif len(body) > 400:
-        abort(400, "ТЫ СЛИШКОМ ДОЛГО ПИШЕШЬ КОММЕНТЫ")
+    comment_validator(body)
     new_comment = Comment(body=body, author_id=g.user.id, post_id=post.id)
     db.session.add(new_comment)
     db.session.commit()
@@ -192,6 +223,11 @@ def post_comment(id):
 
     return redirect(url_for('blog.view', id=id))
 
+def comment_validator(body):
+    if body is None:
+        abort(400, "какой смысл тебе пустые комментарии слать?")
+    elif len(body) > 400:
+        abort(400, "ТЫ СЛИШКОМ ДОЛГО ПИШЕШЬ КОММЕНТЫ")
 
 # TODO: вынести эти функции в модель подписок/пользователя
 def get_global_subscribers_emails():

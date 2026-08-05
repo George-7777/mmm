@@ -73,6 +73,10 @@
         <div>
           <div class="about">by {{ comment.author.username }} on {{ comment['created'].strftime('%Y-%m-%d') }}</div>
         </div>
+          {% if g.user['id'] == comment['author_id'] or g.user['id'] == 1 %}
+          <a class="action" href="{{ url_for('blog.update_comment', post_id=post['id'], comment_id=comment['id']) }}">Видоизменить</a>
+          <a class="action" href="{{ url_for('blog.delete_comment', post_id=post['id'], comment_id=comment['id']) }}"><span class="danger">УДАЛИТЬ</span></a>
+          {% endif %}
       </header>
       <p class="body">{{ comment['body'] }}</p>
     </article>
