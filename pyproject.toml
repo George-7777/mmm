@@ -1,6 +1,6 @@
 [project]
 name = "mmm"
-version = "0.5.0"
+version = "0.5.1"
 description = "Простая социальная сеть для общения молодежоактивных между собой."
 dependencies = [
     "flask",

@@ -3,6 +3,7 @@
 {% block header %}
   <a class="back" href="{{ url_for('blog.index') }}">Назад</a>
   <h1>{% block title %}{{ post['title'] }}{% endblock %}</h1>
+    {% if g.user %}
     <a class="action" href="{{ url_for('profile.change_sub_post', post_id=post['id']) }}">
         {% if g.user.is_subscribed_to_post(post.id) %}
         Отписаться от обсуждения
@@ -10,6 +11,7 @@
         Подписаться на обсуждение
         {% endif %}
     </a>
+    {% endif %}
   {% if g.user['id'] == post['author_id'] %}
     <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Видоизменить</a>
   {% endif %}
