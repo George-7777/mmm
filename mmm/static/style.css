@@ -47,10 +47,19 @@ button.nobtn:disabled {
 .tag:not(:first-child) {
   margin-left: 7px;
 }
-form.searchbar { display: grid; grid-template-columns: 5fr 1fr 2fr; grid-template-rows: 1fr; }
+form.searchbar { display: grid; grid-template-columns: 10fr 2fr 2fr 4fr; grid-template-rows: 1fr; }
+.paginator { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr;
+    background-color: black;
+  border: 5px orange solid;
+  border-radius: 0;
+  color: white;
+}
+.paginator div:nth-child(2) { text-align: center; }
+.paginator div:last-child { text-align: right; }
 form.searchbar input#search { grid-row: 1; grid-column: 1; height: 100%; }
-form.searchbar input[type="submit"] { grid-row: 1; grid-column: 2; height: 100%; }
-form.searchbar select#sort { grid-row: 1; grid-column: 3; height: 100%; }
+form.searchbar input[type="submit"] { grid-row: 1; grid-column: 4; height: 100%; }
+form.searchbar select#sort { grid-row: 1; grid-column: 2; height: 100%; }
+form.searchbar select#max_pages { grid-row: 1; grid-column: 3; height: 100%; }
 form.searchbar input,
 form.searchbar select {
     height: 40px;

@@ -12,7 +12,7 @@
     <form class="searchbar" method="get" action="{{ url_for('blog.index') }}">
         <input name="search" id="search"
             value="{{ request.args.get('search', '') }}" placeholder="Сыщик публикаций" maxlength="200">
-        <input type="submit" value="ПРИМЕНИТЬ">
+
         {% if current_tag %}
         <input name="tag" id="costilni_costil" style="display: none" value="{{ current_tag }}">
         {% endif %}
@@ -20,12 +20,23 @@
             {% set sort = request.args.get('sort') %}
             <option value="new" {% if not sort or sort == 'new' %} selected {% endif %}>Сначала новые</option>
             <option value="old" {% if sort == 'old' %} selected {% endif %}>Сначала старые</option>
-            <option value="best" {% if sort == 'best' %} selected {% endif %}>Сначала лучшие (по мнению социума)</option>
-            <option value="worst" {% if sort == 'worst' %} selected {% endif %}>Сначала худшие (по мнению социума)</option>
+            <option value="best" {% if sort == 'best' %} selected {% endif %}>Сначала лучшие</option>
+            <option value="worst" {% if sort == 'worst' %} selected {% endif %}>Сначала худшие</option>
         </select>
+
+        <select name="max_pages" id="max_pages">
+            {% set max_pages = request.args.get('max_pages') %}
+            <option value="1" {% if max_pages == '1' %} selected {% endif %}>1 на странице</option>
+            <option value="3" {% if max_pages == '3' %} selected {% endif %}>3 на странице</option>
+            <option value="5" {% if max_pages == '5' %} selected {% endif %}>5 на странице</option>
+            <option value="10" {% if not max_pages or max_pages == '10' %} selected {% endif %}>10 на странице</option>
+            <option value="20" {% if max_pages == '20' %} selected {% endif %}>20 на странице</option>
+        </select>
+
+        <input type="submit" value="ПРИМЕНИТЬ">
     </form>
 <hr>
-  {% for post in posts %}
+  {% for post in posts.items %}
     <article class="post click_post" data-url="{{ url_for('blog.view', id=post['id']) }}">
       <header>
         <div>
@@ -73,10 +84,14 @@
         <button disabled class="comments nobtn"><a href="{{ url_for('blog.view', id=post['id']) }}">Комментариев: {{ post.comments.count() }}</a></button>
       </form>
     </article>
-    {% if not loop.last %}
       <hr>
-    {% endif %}
   {% endfor %}
+
+    <div class="paginator">
+        <div>{% if posts.has_prev %}<a href="{{ url_for('blog.index', page = posts.prev_num, tag=request.args.get('tag'), search=request.args.get('search'), sort=request.args.get('sort'), max_pages=request.args.get('max_pages')) }}"><< Предыдущая страница</a>{% else %}<< Предыдущая страница{% endif %}</div>
+        <div>Энто стран(н?)ица номер {{ page }}</div>
+        <div>{% if posts.has_next %}<a href="{{ url_for('blog.index', page = posts.next_num, tag=request.args.get('tag'), search=request.args.get('search'), sort=request.args.get('sort'), max_pages=request.args.get('max_pages')) }}">Следующая страница >></a>{% else %}Следующая страница >>{% endif %}</div>
+    </div>
 
   <script>
     document.querySelectorAll('.post').forEach(article => {

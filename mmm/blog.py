@@ -1,7 +1,7 @@
 import string
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
 )
 from sqlalchemy import or_
 from werkzeug.exceptions import abort
@@ -20,6 +20,9 @@ def index():
     tag = request.args.get('tag')
     search = request.args.get('search')
     sort = request.args.get('sort')
+
+    max_pages = int(request.args.get('max_pages', current_app.config.get('DEFAULT_MAX_PAGES', 10)))
+    page = int(request.args.get('page', 1))
 
     query = db.session.query(Post).join(User)
 
@@ -47,8 +50,8 @@ def index():
         query = query.order_by(Post.rating.desc())
     elif sort == 'worst':
         query = query.order_by(Post.rating.asc())
-    posts = query.order_by(Post.created.desc()).all()
-    return render_template('blog/index.html', posts=posts, current_tag=tag)
+    posts = query.paginate(page=page, per_page=max_pages, max_per_page=100, error_out=True)
+    return render_template('blog/index.html', posts=posts, current_tag=tag, page=page)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
