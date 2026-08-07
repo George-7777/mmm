@@ -10,7 +10,7 @@ from mmm.auth import login_required
 
 from . import db
 from .models import Post, User, Vote, Comment, Subscribes
-from .utils import send_notification_post, send_notification_comment
+from .utils import send_notification_post, send_notification_comment, send_notification_author
 
 bp = Blueprint('blog', __name__)
 
@@ -80,6 +80,7 @@ def create():
             db.session.commit()
 
             send_notification_post(get_global_subscribers_emails() , new_post)
+            send_notification_author(get_author_subscribers_emails(g.user.id), new_post, g.user.username)
 
             return redirect(url_for('blog.index'))
 
@@ -153,7 +154,7 @@ def view(id):
     post = get_post(id, False)
     return render_template('blog/view.html', post=post)
 
-# TODO: вынести в блюпринт комментариев
+# TODO: вынести в блюпринт комментариев (0.6.1)
 @bp.route('/<int:post_id>/comments/<int:comment_id>', methods=('GET', 'POST'))
 @login_required
 def update_comment(post_id, comment_id):
@@ -232,7 +233,7 @@ def comment_validator(body):
     elif len(body) > 400:
         abort(400, "ТЫ СЛИШКОМ ДОЛГО ПИШЕШЬ КОММЕНТЫ")
 
-# TODO: вынести эти функции в модель подписок/пользователя
+# TODO: вынести эти функции в модель подписок/пользователя + вынести общий функционал функций (?) (0.6.1)
 def get_global_subscribers_emails():
     query = db.session.query(User.email).join(Subscribes, User.id == Subscribes.user_id).filter(
         Subscribes.type == 'global',
@@ -245,6 +246,15 @@ def get_post_subscribers_emails(post_id):
     query = db.session.query(User.email).join(Subscribes, User.id == Subscribes.user_id).filter(
         Subscribes.type == 'discussion',
         Subscribes.subject_id == post_id,
+    ).distinct()
+
+    emails = [row[0] for row in query.all()]
+    return emails
+
+def get_author_subscribers_emails(author_id):
+    query = db.session.query(User.email).join(Subscribes, User.id == Subscribes.user_id).filter(
+        Subscribes.type == 'author',
+        Subscribes.subject_id == author_id,
     ).distinct()
 
     emails = [row[0] for row in query.all()]

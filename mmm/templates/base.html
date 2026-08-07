@@ -5,7 +5,7 @@
   <h1><a href="{{ url_for('blog.index') }}">МММ</a></h1>
   <ul>
     {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
+      <li><a href="{{ url_for('profile.view', user_id=g.user['id']) }}">{{ g.user['username'] }}</a></li>
       <li><a href="{{ url_for('profile.settings') }}">Настройки аккаунта</a></li>
       <li><a href="{{ url_for('auth.logout') }}">Выйти</a>
     {% else %}

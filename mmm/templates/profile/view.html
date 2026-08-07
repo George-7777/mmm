@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Профиль {{ user.username }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <section class="profile">
+      <div class="upper_profile">
+      <div class="avatar">
+          <img src="ничего" alt="тут должна быть аватарка пользователя, но её пока нет">
+          <h1>{{ user.username }}</h1>
+          <p>Присоеденился к МММ {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+      </div>
+      <div class="bio">
+          <h1>Как он о себе глаголит:</h1>
+          {% if user.description %}
+          <p>{{ user.description }}</p>
+          {% else %}
+          <p class="info">Да никак он о себе не глаголит...</p>
+          {% endif %}
+          {% if user.show_email %}
+          <hr>
+          <p class="contact-info">Почта: {{ user.email }}</p>
+          {% endif %}
+      </div>
+      </div>
+
+      <div class="profile-tabs">
+      <a href="{{ url_for('profile.view', user_id=user.id, type_content='post', max_pages=request.args.get('max_pages'), page=request.args.get('page')) }}"
+         class="tab {% if type_content == 'posts' %}active{% endif %}">Посты</a>
+      <a href="{{ url_for('profile.view', user_id=user.id, type_content='comment', max_pages=request.args.get('max_pages'), page=request.args.get('page')) }}"
+         class="tab {% if type_content == 'comments' %}active{% endif %}">Комментарии</a>
+    </div>
+
+      <div class="profile-content">
+      {% if type_content == 'posts' %}
+        {% if content.items %}
+          {% for post in content.items %}
+            <article class="post click_post" onclick="location.href='{{ url_for('blog.view', id=post.id) }}'">
+                  <header>
+            <div>
+              <h1>{{ post['title'] }}</h1>
+              <div class="about">by <a href="{{ url_for('profile.view', user_id=post.author.id) }}">{{ post.author.username }}</a> on {{ post['created'].strftime('%Y-%m-%d') }}</div>
+            </div>
+            {% if g.user['id'] == post['author_id'] or g.user['id'] == 1 %}
+              <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Видоизменить</a>
+            {% endif %}
+          </header>
+          <p class="body">{{ post['body'] }}</p>
+          <div class="tags">
+          {% if post.tags %}
+          {% set tags_list = post.tags.split(' ') %}
+            {% for tag in tags_list %}
+              <span class="tag">
+                <a href="{{ url_for('blog.index', tag=tag.strip()) }}">
+                  #{{ tag.strip() }}
+                </a>
+              </span>
+              {% if not loop.last %} {% endif %}
+            {% endfor %}
+          {% else %}
+            <span class="tag">Нет тегов</span>
+          {% endif %}
+    </div>
+          <p class="rating"></p>
+          <form method="post" action="{{ url_for('blog.vote', id=post['id']) }}">
+            <button type="submit" name="value" value="1"
+            {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
+                        | selectattr('post_id', 'equalto', post.id)
+                        | selectattr('value', 'equalto', 1)
+                        | first %}
+            class="active_vote"
+            {% endif %}
+            >👍</button>
+            <button class="nobtn" disabled>{{ post.rating }}</button>
+            <button type="submit" name="value" value="-1"
+            {% if g.user.votes | selectattr('user_id', 'equalto', g.user.id)
+                        | selectattr('post_id', 'equalto', post.id)
+                        | selectattr('value', 'equalto', -1)
+                        | first %}
+            class="active_vote"
+            {% endif %}>👎</button>
+            <button disabled class="comments nobtn"><a href="{{ url_for('blog.view', id=post['id']) }}">Комментариев: {{ post.comments.count() }}</a></button>
+          </form>
+        </article>
+          <hr>
+          {% endfor %}
+        {% else %}
+          <p class="info">У пользователя пока нет постов.</p>
+        {% endif %}
+      {% else %}
+        {% if content.items %}
+          {% for comment in content.items %}
+            <article class="post">
+              <header>
+                <div>
+                  <div class="about">by <a href="{{ url_for('profile.view', user_id=comment.author.id) }}">{{ comment.author.username }}</a> on {{ comment['created'].strftime('%Y-%m-%d') }} в ответ на пост <a href="{{ url_for('blog.view', id=comment.post.id) }}">"{{ comment.post.title }}"</a></div>
+                </div>
+              </header>
+              <p class="body">{{ comment['body'] }}</p>
+            </article>
+          <hr>
+          {% endfor %}
+        {% else %}
+          <p class="info">У пользователя пока нет комментариев.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+
+      {% if content.pages > 1 %}
+      <div class="paginator">
+        <div>
+          {% if content.has_prev %}
+            <a href="{{ url_for('profile.view', user_id=user.id, type_content=type_content, page=content.prev_num, max_pages=request.args.get('max_pages')) }}">← Назад</a>
+          {% else %}
+            <span class="disabled">← Назад</span>
+          {% endif %}
+        </div>
+        <div>
+          Страница {{ content.page }} из {{ content.pages }}
+        </div>
+        <div>
+          {% if content.has_next %}
+            <a href="{{ url_for('profile.view', user_id=user.id, type_content=type_content, page=content.next_num, max_pages=request.args.get('max_pages')) }}">Вперёд →</a>
+          {% else %}
+            <span class="disabled">Вперёд →</span>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+      <form class="searchbar" method="get" action="{{ url_for('profile.view', user_id=user.id) }}">
+      <input type="hidden" name="type_content" value="{{ type_content }}">
+      <select name="max_pages" id="max_pages">
+        <option value="5" {% if content.per_page == 5 %}selected{% endif %}>5 на странице</option>
+        <option value="10" {% if content.per_page == 10 %}selected{% endif %}>10 на странице</option>
+        <option value="20" {% if content.per_page == 20 %}selected{% endif %}>20 на странице</option>
+        <option value="50" {% if content.per_page == 50 %}selected{% endif %}>50 на странице</option>
+      </select>
+      <input type="submit" value="ПРИМЕНИТЬ">
+    </form>
+  </section>
+
+{% endblock %}

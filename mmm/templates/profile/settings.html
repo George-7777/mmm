@@ -5,8 +5,8 @@
 {% endblock %}
 
 {% block content %}
-  <p>Пока-что самого профиля нет, но ты уже можешь много интересного свершить</p>
   <form method="post">
+    <h1>Аккаунт</h1>
     <label for="username">Поменять имя:</label>
     <input name="username" id="username" value="{{ g.user['username'] }}" required maxlength="20">
     <label for="password">Поменять пароль:</label>
@@ -18,6 +18,14 @@
       <span class="danger">При смене почты нужно будет провести активацию аккаунта заново!</span>
     <label>
       <input type="checkbox" name="subscribe" value="on" {% if g.user.is_subscribed_to_global() %} checked {% endif %}> Получать уведомления о ВСЕХ постах на МММ.
+    </label>
+    <hr>
+    <h1>Профиль</h1>
+    <!-- дух есть круг, 6 - это скованный дух, скрытый за зонтом от небес, 8 - вечность. 9 - торжество духа над зонтом, finale. -->
+    <label for="description">Расскажите о себе, как о ЛИЧНОСТИ (?):</label>
+    <textarea name="description" id="description">{% if g.user['description'] %}{{ g.user['description'] }}{% endif %}</textarea>
+    <label>
+      <input type="checkbox" name="show_email" value="on" {% if g.user['show_email'] %} checked {% endif %}> Показывать адрес почты в своём профиле.
     </label>
     <input type="submit" value="С0ХРАНИТЬ твоё новое 0БЛИЧИЕ">
   </form>
