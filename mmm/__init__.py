@@ -26,6 +26,7 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     @app.route('/hello')
     def hello():

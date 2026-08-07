@@ -8,7 +8,7 @@
   <section class="profile">
       <div class="upper_profile">
       <div class="avatar">
-          <img src="ничего" alt="тут должна быть аватарка пользователя, но её пока нет">
+          <img src="{{ url_for('profile.avatar', user_id=user.id) }}" alt="тут должна быть аватарка пользователя, но её пока нет">
           <h1>{{ user.username }}</h1>
           <p>Присоеденился к МММ {{ user.created_at.strftime('%Y-%m-%d') }}</p>
       </div>
@@ -27,7 +27,7 @@
       </div>
 
       <div class="profile-tabs">
-      <a href="{{ url_for('profile.view', user_id=user.id, type_content='post', max_pages=request.args.get('max_pages'), page=request.args.get('page')) }}"
+      <a href="{{ url_for('profile.view', user_id=user.id, type_content='posts', max_pages=request.args.get('max_pages'), page=request.args.get('page')) }}"
          class="tab {% if type_content == 'posts' %}active{% endif %}">Посты</a>
       <a href="{{ url_for('profile.view', user_id=user.id, type_content='comment', max_pages=request.args.get('max_pages'), page=request.args.get('page')) }}"
          class="tab {% if type_content == 'comments' %}active{% endif %}">Комментарии</a>

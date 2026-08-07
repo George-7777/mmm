@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     <h1>Аккаунт</h1>
     <label for="username">Поменять имя:</label>
     <input name="username" id="username" value="{{ g.user['username'] }}" required maxlength="20">
@@ -27,6 +27,8 @@
     <label>
       <input type="checkbox" name="show_email" value="on" {% if g.user['show_email'] %} checked {% endif %}> Показывать адрес почты в своём профиле.
     </label>
+    <label for="avatar">Загрузить аватарку:</label>
+    <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg, image/gif" />
     <input type="submit" value="С0ХРАНИТЬ твоё новое 0БЛИЧИЕ">
   </form>
 {% endblock %}
