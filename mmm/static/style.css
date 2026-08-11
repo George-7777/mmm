@@ -4,7 +4,7 @@ h1 { font-family: serif; color: #de4f18; margin: 1rem 0; }
 a { color: #ff0000; }
 hr { border: none; border-top: 1px solid #ffd600; }
 nav { background: lightgray; display: flex; align-items: center; padding: 0 0.5rem; }
-nav h1 { flex: auto; margin: 0; }
+nav > :nth-child(3) { margin-left: auto; }
 nav h1 a { text-decoration: none; padding: 0.25rem 0.5rem; }
 nav ul  { display: flex; list-style: none; margin: 0; padding: 0; }
 nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }

@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
   <h1><a href="{{ url_for('blog.index') }}">МММ</a></h1>
+  <h2>v0.6.0</h2>
   <ul>
     {% if g.user %}
       <li><a href="{{ url_for('profile.view', user_id=g.user['id']) }}">{{ g.user['username'] }}</a></li>
