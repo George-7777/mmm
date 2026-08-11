@@ -14,6 +14,10 @@ class User(db.Model):
     verified = db.Column(db.Boolean, default=False, server_default='0')
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    description = db.Column(db.Text, nullable=True)
+    show_email = db.Column(db.Boolean, default=False, server_default='0', nullable=False)
+    avatar = db.Column(db.String(200), nullable=True)
+
     posts = db.relationship('Post', backref='author', lazy=True)
     votes = db.relationship('Vote', backref='author', lazy=True)
     comments = db.relationship('Comment', backref='author', lazy=True)
