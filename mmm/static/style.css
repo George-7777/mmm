@@ -188,3 +188,11 @@ form.searchbar select {
     color: blue;
     font-style: italic;
 }
+
+.avatar_small {
+    width: 15px;
+    border: 1px solid #de4f18;
+    border-radius: 1px;
+    margin-bottom: 0px;
+    vertical-align: middle;
+}

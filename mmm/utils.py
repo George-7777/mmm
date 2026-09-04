@@ -42,7 +42,7 @@ def send_massive_message(user_emails, subject, html):
         mail.send(msg)
 
 # TODO: 0.6.1 вынести хард-код
-def send_notification_post(user_emails, post):
+def send_notification_post(user_emails, post, update=False):
     html = f"""
         <!DOCTYPE html>
 <html>
@@ -81,7 +81,11 @@ def send_notification_post(user_emails, post):
 </html>
     """
 
-    send_massive_message(user_emails, "УВЕДОМЛЕНИЕ - Новая публикация на МММ: " + post.title, html)
+    if update:
+        theme = "УВЕДОМЛЕНИЕ - Изменение публикации на МММ: "
+    else:
+        theme = "УВЕДОМЛЕНИЕ - Новая публикация на МММ: "
+    send_massive_message(user_emails, theme + post.title, html)
 
 
 def send_notification_author(user_emails, post, author_username):

@@ -134,6 +134,10 @@ def update(id):
             post.body = body
             post.tags = tags
             db.session.commit()
+
+            post = get_post(id)
+            send_notification_post(get_post_subscribers_emails(id), post, update=True)
+
             return redirect(url_for('blog.index'))
 
     return render_template('blog/update.html', post=post)
